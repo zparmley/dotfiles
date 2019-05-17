@@ -1,22 +1,10 @@
-" My daily driver
-
-" use .vim even on windows {
-    set rtp+=~/.vim
-" }
-
-" vundle initialization and options {
-    set nocompatible              " be iMproved, required
-    filetype off                  " required
-
-    " set the runtime path to include Vundle and initialize
-    set rtp+=~/.vim/bundle/Vundle.vim
-    call vundle#begin()
-    Plugin 'VundleVim/Vundle.vim'
-" }
+" reference.vimrc
+" This inculdes a lot of stuff I don't use but that might be helpful for
+" someone else in the future
 
 " display options {
     syntax on               "syntax coloring is a first-cut debugging tool
-    colorscheme elflord     "change to taste. try `desert' or `evening'
+    colorscheme elflord  "change to taste. try `desert' or `evening'
 
     set wrap                "wrap long lines
     set scrolloff=3         "keep three lines visible above and below
@@ -55,7 +43,7 @@
 " }
 
 " general usability {
-    "turn off the annoying 'ding!'
+    "turn off the annoying "ding!"
     set visualbell
 
     "allow setting extra option directly in files
@@ -65,19 +53,69 @@
     "don't clobber the buffer when pasting in visual mode
     vmap P p
     vnoremap p "_dP
-    
-    "Spell check language
-    set spelllang=en
+" }
+
+" windows-style mappings {
+    "ctrl+S to save.
+    "NOTE: put this in ~/.bashrc for it to work properly in terminal vim:
+    "       stty -ixon -ixoff
+    map <c-s> :update<cr>
+    imap <c-s> <c-o><c-s>
+    "ctrl+A to select all
+    noremap <c-a> ggVG
+    imap <c-a> <esc><c-a>
+    "ctrl+C to copy
+    map <c-c> "+y
+    "ctrl+Y to redo
+    map <c-y> <c-r>
+    imap <c-y> <c-o><c-r>
+    imap <c-r> <c-o><c-r>
+    "ctrl+Z to undo
+    "map <c-z> u            "this clobbers UNIX ctrl+z to background vim
+    imap <c-z> <c-o>u
+    "ctrl+Q to save/quit
+    map <c-q> :update\|q<cr>
+    imap <c-q> <c-o><c-q>
+    "ctrl+V to paste
+    map <c-v> "+gP
+    imap <c-v> <c-o>"+gP
+    vmap <c-v> "+P
+
+    "replace <CTRL-V> with <CTRL-B>
+    noremap <c-b> <c-v>
+    inoremap <c-b> <c-v>
 " }
 
 " common typos {
+    " Often I hold shift too long when issuing these commands.
+    command! Q q
+    command! Qall qall
+    command! W w
+    command! Wall wall
+    command! WQ wq
+    command! Wq wq
+    nmap Q: :q
+
+    " this one causes a pause whenever you use q, so I don't use it
+    " nmap q: :q
+
     "never use Ex mode -- I never *mean* to press it
     nnoremap Q <ESC>
+
+    "never use F1 -- I'm reaching for escape
+    noremap  <F1> <ESC>
+    noremap! <F1> <ESC>
+    lnoremap <F1> <ESC>
 " }
 
 " multiple files {
     " be smarter about multiple buffers / vim instances
+    "quick buffer switching with TAB, even with edited files
     set hidden
+    " I commented these out and added mappings for switching tabs instead of
+    " buffers later.  I use tabs, I don't use buffers - zparmley
+    " nmap <TAB> :bn<CR>
+    " nmap <S-TAB> :bp<CR>
     set autoread            "auto-reload files, if there's no conflict
     set shortmess+=IA       "no intro message, no swap-file message
 
@@ -91,7 +129,13 @@
     nnoremap <C-L> <C-W>l
     nnoremap <C-Q> <C-W>q
 
-    " tab switching: tab/shift-tab
+    " Commented out, I prefer to switch with tab, shift-tab
+    "tab switching: ctrl+left/right
+    " nnoremap Od :tabp<CR>
+    " nnoremap Oc :tabN<CR>
+    
+
+    " tab switching: tab/shift-tab - zparmley
     nnoremap <TAB> :tabn<CR>
     nnoremap <S-TAB> :tabp<CR>
 " }
@@ -112,29 +156,40 @@
     filetype plugin on
 " }
 
-" vundle plugins and end {
-    if filereadable(expand('~/.vim/VundlePlugins.vimrc'))
-        source ~/.vim/VundlePlugins.vimrc
+" tkdiff-like bindings for vimdiff {
+    if &diff
+        "next match
+        nnoremap m ]cz.
+        "previous match
+        nnoremap M [cz.
+        "refresh the diff
+        nnoremap R :w\|set nodiff\|set diff<cr>
+        "quit, both panes
+        nnoremap q :qall<cr>
+
+        "show me the top of the "new" file
+        autocmd VimEnter * normal lgg
     endif
-
-    call vundle#end()            " required
-    filetype plugin indent on    " required
-" }
-"
-"
-" Syntastic settings {
-    set statusline+=%#warningmsg#
-    set statusline+=%{SyntasticStatuslineFlag()}
-    set statusline+=%*
-
-    let g:syntastic_always_populate_loc_list = 1
-    let g:syntastic_auto_loc_list = 1
-    let g:syntastic_check_on_open = 1
-    let g:syntastic_check_on_wq = 0
-    let g:syntastic_python_checkers = ['flake8', 'mypy']
-    let g:syntastic_markdown_checkers = ['mdl']
 " }
 
-" Syntax highlighting settings {
-    let g:markdown_fenced_languages = ['html', 'python', 'bash=sh']
+" Ifn you'd like to use tabs instead of spaces {
+"    set noexpandtab
+"    set tabstop=4
 " }
+
+" Pathogen: {
+    " keep plugins nicely bundled in separate folders.
+    " http://www.vim.org/scripts/script.php?script_id=2332
+    runtime autoload/pathogen.vim
+    if exists('g:loaded_pathogen')
+        call pathogen#infect()    "load the bundles, if possible
+        Helptags                  "plus any bundled help
+        runtime bundle_config.vim "give me a chance to configure the plugins
+    endif
+" }
+
+" For extra stuff:
+if filereadable($HOME . "/.vimrc.extra")
+    source $HOME/.vimrc.extra 
+endif
+" vim:et:sts=4:sw=4
