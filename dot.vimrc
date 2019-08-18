@@ -120,21 +120,13 @@
     call vundle#end()            " required
     filetype plugin indent on    " required
 " }
-"
-"
-" Syntastic settings {
-    set statusline+=%#warningmsg#
-    set statusline+=%{SyntasticStatuslineFlag()}
-    set statusline+=%*
-
-    let g:syntastic_always_populate_loc_list = 1
-    let g:syntastic_auto_loc_list = 1
-    let g:syntastic_check_on_open = 1
-    let g:syntastic_check_on_wq = 0
-    let g:syntastic_python_checkers = ['flake8', 'mypy']
-    let g:syntastic_markdown_checkers = ['mdl']
-" }
 
 " Syntax highlighting settings {
     let g:markdown_fenced_languages = ['html', 'python', 'bash=sh']
 " }
+
+" Syntax airline settings {
+let g:airline_section_z = airline#section#create(['windowswap', '%3p%% ', 'linenr', ':%3v'])
+let g:airline_powerline_fonts = 1
+let g:airline_theme = 'luna'
+"}
