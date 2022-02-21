@@ -52,16 +52,15 @@ if empty($DEV_VIMRC_PREFIX)
     " https://github.com/junegunn/vim-plug/issues/225
     Plug 'nanotech/jellybeans.vim'
 
-    Plug 'wincent/command-t'
-
-    Plug 'vim-airline/vim-airline'
-    Plug 'vim-airline/vim-airline-themes'
-
+    " Plug 'vim-airline/vim-airline'
+    " Plug 'vim-airline/vim-airline-themes'
+    Plug 'itchyny/lightline.vim'
     Plug 'scrooloose/nerdtree'
     Plug 'dense-analysis/ale'
     Plug 'udalov/kotlin-vim'
-
     Plug 'hdiniz/vim-gradle'
+    Plug 'ctrlpvim/ctrlp.vim'
+    Plug 'ryanoasis/vim-devicons'
 
     " Functions, class data etc.
     " depends on either exuberant-ctags or universal-ctags
@@ -110,6 +109,7 @@ if empty($DEV_VIMRC_PREFIX)
         autocmd!
         autocmd BufNewFile,BufRead *.md set ft=markdown tw=79
         autocmd BufNewFile,BufRead *.tex set ft=tex tw=79
+        autocmd BufNewFile,BufRead ~/.config/zprofile/0* set ft=zsh
     augroup END
     """ }}}
 
@@ -316,6 +316,11 @@ if empty($DEV_VIMRC_PREFIX)
     """ }}}
 
     """ Functions and/or fancy keybinds {{{
+    
+    nnoremap <Leader>Y :call OSXCopyVisualSelection()<CR>
+    """ }}}
+
+
     """ Toggle syntax highlighting {{{
     function! ToggleSyntaxHighlighthing()
         if exists('g:syntax_on')
@@ -443,6 +448,7 @@ if empty($DEV_VIMRC_PREFIX)
     " ALE shortcuts
     if exists('g:plugs["ale"]')
         nnoremap <Leader><Leader>n :ALENextWrap<CR>
+        nnoremap <Leader><Leader>p :ALEPreviousWrap<CR>
     endif
 
 
@@ -459,9 +465,11 @@ if empty($DEV_VIMRC_PREFIX)
     let g:ale_kotlin_languageserver_executable = '/Volumes/Drive2/MAC/Users/zparmley/IntelliJIDEA/Projects/kotlin-language-server/server/build/install/server/bin/kotlin-language-server'
 
     " Airline
-    let g:airline_section_z = airline#section#create(['windowswap', '%3p%% ', 'linenr', ':%3v'])
-    let g:airline_powerline_fonts = 1
-    let g:airline_theme = 'jellybeans'
+    if exists('g:airline')
+        let g:airline_section_z = airline#section#create(['windowswap', '%3p%% ', 'linenr', ':%3v'])
+        let g:airline_powerline_fonts = 1
+        let g:airline_theme = 'jellybeans'
+    endif
     """ }}}
 
     """ Local ending config, will overwrite anything above. Generally use this. {{{

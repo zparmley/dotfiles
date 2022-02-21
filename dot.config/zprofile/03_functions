@@ -1,0 +1,119 @@
+local _caller() {
+    echo $funcstack[3];
+}
+
+local _usage() {
+    typeset -A helptexts;
+    helptexts=(
+        [venv_proto]="venv proto help"
+        [venv]="\[location]
+            location defaults to venv
+            If deactivate is a function, call it
+            Else
+                source location/bin/activate
+        "
+        [pyexec]="script
+            script is a string that could be executed by python -c
+            when script is run, the following context is set up:
+                import sys
+                argv = sys.argv
+                from ~/.config/zprofile/pyexec_imports import *
+                from rich import print as richprint
+        "
+        [richprint]="text
+            essentialy, in python, rich.print(text)
+        "
+    );
+    [ $1 ] && { richprint "[red3 on yellow1]Error [/][yellow1 on red3] $1[/]" };
+    local for_func=$(_caller);
+    richprint "[deep_sky_blue1]${for_func}[/] $helptexts[$for_func]";
+}
+
+
+venv() {
+    _venv_state() {
+        [[ $1 == "activate" ]] && {
+            _venv_pwd="$(pwd)";
+            source $2;
+        } || {
+        [[ $1 == "deactivate" ]] && {
+            richprint "deactivating virtualenv from $_venv_pwd/[green]$2[/]";
+            _venv_pwd="";
+            deactivate;
+        } }
+    }
+
+    [[ ${@[(i)-h*]} -le ${#@} ]] && _usage || {
+    [[ $2 ]] && _usage "Too many arguments" || {
+    [[ $(type deactivate) =~ "deactivate is a shell function from (.*)" ]] && _venv_state deactivate "$match" || {
+        local activate_path="${1:-venv}/bin/activate";
+        [[ -e "$activate_path" ]] && _venv_state activate "$activate_path" || _usage "$activate_path not found";
+    } } }
+}
+
+
+pyexec() {
+    [[ ${@[(i)-h*]} -le ${#@} ]] && { _usage; return; }
+    [[ ${#@} -ne 1 ]] && { _usage "Wrong number of arguments"; return; }
+    python_script="
+import importlib.util
+import sys
+argv = sys.argv
+
+defaults_name = 'pyexec_imports'
+defaults_filepath = '$HOME/.config/zprofile/pyexec_imports.py'
+spec = importlib.util.spec_from_file_location(defaults_name, defaults_filepath)
+module = importlib.util.module_from_spec(spec)
+sys.modules[defaults_name] = module
+spec.loader.exec_module(module)
+
+from pyexec_imports import *
+
+$1
+";
+    /usr/bin/python3 -c "$python_script";
+}
+
+
+pypipe() {
+    [[ ${@[(i)-h*]} -le ${#@} ]] && { _usage; return; }
+    [[ ${#@} -ne 1 ]] && { _usage "Wrong number of arguments"; return; }
+    python_script="
+import importlib.util
+import sys
+argv = sys.argv
+
+defaults_name = 'pyexec_imports'
+defaults_filepath = '$HOME/.config/zprofile/pyexec_imports.py'
+spec = importlib.util.spec_from_file_location(defaults_name, defaults_filepath)
+module = importlib.util.module_from_spec(spec)
+sys.modules[defaults_name] = module
+spec.loader.exec_module(module)
+
+from pyexec_imports import *
+
+for entry in sys.stdin.readlines():
+    _in = entry.strip()
+    $1
+";
+    /usr/bin/python3 -c "$python_script";
+}
+
+
+richprint() {
+    [[ ${@[(i)-h*]} -le ${#@} ]] && { _usage; return; }
+    [[ ${#@} -ne 1 ]] && { _usage "Wrong number of arguments"; return; }
+    pyexec "richprint(\"\"\"$1
+\"\"\")"
+}
+
+
+lswc() {
+    ls -l $1 | wc -l
+}
+
+pythonm() {
+    local mpath_script="print('$1'[:-3].replace('/', '.'))"
+    local mpath=$(python -c "print('$1'[:-3].replace('/', '.'))")
+    python -m $mpath $@[2,-1]
+}
