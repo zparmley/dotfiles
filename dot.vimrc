@@ -2,7 +2,12 @@
 """ if $DEV_VIMRC_PREFIX is set, $HOME/$DEV_VIMRC_PREFIX.vimrc is sourced
 """ and the body of this vimrc is skipped
 if empty($DEV_VIMRC_PREFIX)
-    """ Formatting and many options largly stolen 
+    """ Before plugins loaded
+    " Using a local plugin for openscad
+    let g:polyglot_disabled = ['openscad']
+
+
+    """ Formatting and many options largly stolen
 
     """ Automatically create needed files and folders on first run (*nix only) {{{
     call system('mkdir -p $HOME/.vim/{autoload,bundle,swap,undo}')
@@ -50,7 +55,15 @@ if empty($DEV_VIMRC_PREFIX)
     " Glorious colorscheme
     " To avoid errors during automatic installation
     " https://github.com/junegunn/vim-plug/issues/225
-    Plug 'nanotech/jellybeans.vim'
+    " Plug 'nanotech/jellybeans.vim'
+
+    " https://github.com/haystackandroid/stellarized
+    " Plug 'haystackandroid/stellarized'
+
+    Plug 'TroyFletcher/vim-colors-synthwave'
+
+    " All the languages
+    Plug 'sheerun/vim-polyglot'
 
     " Plug 'vim-airline/vim-airline'
     " Plug 'vim-airline/vim-airline-themes'
@@ -58,15 +71,23 @@ if empty($DEV_VIMRC_PREFIX)
     Plug 'scrooloose/nerdtree'
     Plug 'dense-analysis/ale'
     Plug 'udalov/kotlin-vim'
+    Plug 'sudar/vim-arduino-syntax'
+    " Plug 'sirtaj/vim-openscad'
+    " Using a locally edited version of vim-openscad
+    Plug '~/_Projects/vim-openscad'
     Plug 'hdiniz/vim-gradle'
     Plug 'ctrlpvim/ctrlp.vim'
     Plug 'ryanoasis/vim-devicons'
+    " Plug 'python-mode/python-mode', { 'for': 'python', 'branch': 'develop' }
+
+    Plug 'tpope/vim-commentary'
 
     " Functions, class data etc.
     " depends on either exuberant-ctags or universal-ctags
     if executable('ctags-exuberant') || executable('ctags')
         Plug 'majutsushi/tagbar'
     endif
+
 
     """ }}}
 
@@ -102,7 +123,12 @@ if empty($DEV_VIMRC_PREFIX)
     "             \    'CursorLine': { 'ctermbg': '235'},
     "             \}
 
-    silent! colorscheme jellybeans
+    """ jellybeans
+    " silent! colorscheme jellybeans
+
+    """ stellarized light
+    " set background=light
+    " colorscheme stellarized
 
     """ Force behavior and filetypes, and by extension highlighting {{{
     augroup FileTypeRules
@@ -168,7 +194,7 @@ if empty($DEV_VIMRC_PREFIX)
     set splitbelow                                  " splits go below w/focus
     set splitright                                  " vsplits go right w/focus
     set ttyfast                                     " for faster redraws etc
-    set ttymouse=xterm2                             " experimental
+    " set ttymouse=xterm2                             " experimental
     set whichwrap=b,s,h,l,<,>,~,[,]                 " left / right wraps to prev/next line
 
     """ Folding {{{
@@ -317,79 +343,118 @@ if empty($DEV_VIMRC_PREFIX)
 
     """ Functions and/or fancy keybinds {{{
     
-    nnoremap <Leader>Y :call OSXCopyVisualSelection()<CR>
-    """ }}}
+        """ Split python multiple-import into seperate single imports {{{
+        function! SplitPythonMultiImport()
+            let line = getline('.')
+            let parts = split(line, 'import ')
+            let startline = parts[0]
+            let mports = split(parts[1], ', ')
+            for i in mports
+                let newline = startline . "import " . i
+                call append('.', newline)
+            endfor
+            execute "normal! dd"
+        endfunction
+        nnoremap <Leader>pp :call SplitPythonMultiImport()<CR>
+        """ }}}
+        
+        """ Toggle syntax highlighting {{{
+        function! ToggleSyntaxHighlighthing()
+            if exists('g:syntax_on')
+                syntax off
+            else
+                syntax enable
+            endif
+        endfunction
 
+        nnoremap <Leader>s :call ToggleSyntaxHighlighthing()<CR>
+        """ }}}
 
-    """ Toggle syntax highlighting {{{
-    function! ToggleSyntaxHighlighthing()
-        if exists('g:syntax_on')
-            syntax off
-        else
-            syntax enable
-        endif
-    endfunction
+        """ Highlight characters past 79, toggle with <Leader>h {{{
+        """ You might want to override this function and its variables with
+        """ your own in .vimrc.last which might set for example colorcolumn or
+        """ even the textwidth. See https://github.com/timss/vimconf/pull/4
+        let g:overlength_enabled = 0
+        highlight OverLength ctermbg=238 guibg=#444444
 
-    nnoremap <Leader>s :call ToggleSyntaxHighlighthing()<CR>
-    """ }}}
-    """ Highlight characters past 79, toggle with <Leader>h {{{
-    """ You might want to override this function and its variables with
-    """ your own in .vimrc.last which might set for example colorcolumn or
-    """ even the textwidth. See https://github.com/timss/vimconf/pull/4
-    let g:overlength_enabled = 0
-    highlight OverLength ctermbg=238 guibg=#444444
+        function! ToggleOverLength()
+            if g:overlength_enabled == 0
+                match OverLength /\%79v.*/
+                let g:overlength_enabled = 1
+                echo 'OverLength highlighting turned on'
+            else
+                match
+                let g:overlength_enabled = 0
+                echo 'OverLength highlighting turned off'
+            endif
+        endfunction
 
-    function! ToggleOverLength()
-        if g:overlength_enabled == 0
-            match OverLength /\%79v.*/
-            let g:overlength_enabled = 1
-            echo 'OverLength highlighting turned on'
-        else
-            match
-            let g:overlength_enabled = 0
-            echo 'OverLength highlighting turned off'
-        endif
-    endfunction
+        nnoremap <Leader>h :call ToggleOverLength()<CR>
+        """ }}}
+        """ Toggle text wrapping, wrap on whole words {{{
+        """ For more info see: http://stackoverflow.com/a/2470885/1076493
+        function! WrapToggle()
+            if &wrap
+                set list
+                set nowrap
+            else
+                set nolist
+                set wrap
+            endif
+        endfunction
 
-    nnoremap <Leader>h :call ToggleOverLength()<CR>
-    """ }}}
-    """ Toggle text wrapping, wrap on whole words {{{
-    """ For more info see: http://stackoverflow.com/a/2470885/1076493
-    function! WrapToggle()
-        if &wrap
-            set list
-            set nowrap
-        else
-            set nolist
-            set wrap
-        endif
-    endfunction
+        nnoremap <Leader>w :call WrapToggle()<CR>
+        """ }}}
+        """ Remove multiple empty lines {{{
+        function! DeleteMultipleEmptyLines()
+            g/^\_$\n\_^$/d
+        endfunction
 
-    nnoremap <Leader>w :call WrapToggle()<CR>
-    """ }}}
-    """ Remove multiple empty lines {{{
-    function! DeleteMultipleEmptyLines()
-        g/^\_$\n\_^$/d
-    endfunction
+        nnoremap <Leader>ld :call DeleteMultipleEmptyLines()<CR>
+        """ }}}
+        """ Strip trailing whitespace, return to cursor at save {{{
+        function! StripTrailingWhitespace()
+            let l:save = winsaveview()
+            %s/\s\+$//e
+            call winrestview(l:save)
+        endfunction
 
-    nnoremap <Leader>ld :call DeleteMultipleEmptyLines()<CR>
-    """ }}}
-    """ Strip trailing whitespace, return to cursor at save {{{
-    function! StripTrailingWhitespace()
-        let l:save = winsaveview()
-        %s/\s\+$//e
-        call winrestview(l:save)
-    endfunction
+        augroup StripTrailingWhitespace
+            autocmd!
+            autocmd FileType c,cpp,cfg,conf,css,html,perl,python,sh,tex,yaml
+                        \ autocmd BufWritePre <buffer> :call
+                        \ StripTrailingWhitespace()
+        augroup END
 
-    augroup StripTrailingWhitespace
-        autocmd!
-        autocmd FileType c,cpp,cfg,conf,css,html,perl,python,sh,tex,yaml
-                    \ autocmd BufWritePre <buffer> :call
-                    \ StripTrailingWhitespace()
-    augroup END
+        nnoremap <Leader>s<Space> :call StripTrailingWhitespace()<CR>
+        """ }}}
 
-    nnoremap <Leader>s<Space> :call StripTrailingWhitespace()<CR>
-    """ }}}
+        """ Smart tab in insert mode {{{
+        """ - try to insert tabs when appropraite, else autocomplete
+        """ https://vim.fandom.com/wiki/Smart_mapping_for_tab_completion
+        function! Smart_TabComplete()
+            let line = getline('.')                         " current line
+
+            let substr = strpart(line, -1, col('.')+1)      " from the start of the current
+                                                            " line to one character right
+                                                            " of the cursor
+            let substr = matchstr(substr, "[^ \t]*$")       " word till cursor
+            if (strlen(substr)==0)                          " nothing to match on empty string
+                return "\<tab>"
+            endif
+            let has_period = match(substr, '\.') != -1      " position of period, if any
+            let has_slash = match(substr, '\/') != -1       " position of slash, if any
+            if (!has_period && !has_slash)
+                return "\<C-X>\<C-P>"                         " existing text matching
+            elseif ( has_slash )
+                return "\<C-X>\<C-F>"                         " file matching
+            else
+                return "\<C-X>\<C-O>"                         " plugin matching
+            endif
+        endfunction
+
+        inoremap <tab> <c-r>=Smart_TabComplete()<CR>
+        """ }}}
     """ }}}
 
 
@@ -444,11 +509,20 @@ if empty($DEV_VIMRC_PREFIX)
     if exists('g:plugs["tagbar"]')
         nnoremap <F2> :TagbarToggle<CR>
     endif
-    
+
     " ALE shortcuts
     if exists('g:plugs["ale"]')
         nnoremap <Leader><Leader>n :ALENextWrap<CR>
         nnoremap <Leader><Leader>p :ALEPreviousWrap<CR>
+    endif
+
+    " Commentary shortcuts
+    if exists('g:plugs["vim-commentary"]')
+        xnoremap <Leader>/ <Plug>Commentary
+        nnoremap <Leader>/ <Plug>Commentary
+        onoremap <Leader>/ <Plug>Commentary
+        nnoremap <Leader>// <Plug>CommentaryLine
+        nnoremap <Leader>/u <Plug>Commentary<Plug>Commentary
     endif
 
 
@@ -460,6 +534,20 @@ if empty($DEV_VIMRC_PREFIX)
     """ }}}
 
     """ Plugin settings {{{
+    " OpenSCAD - Author describes as a hack, running local version with my own
+    " edits
+    "" Python-like indents (local addition)
+    let g:openscad = 1
+    let g:openscad_indent = 1
+    " PyMode python-mode https://github.com/python-mode/python-mode
+    "" No pymode linters - using ALE instead for linting
+    let g:pymode = 0
+    let g:pymode_lint_checkers = []
+
+    let g:pymode_options_max_line_length = 140
+    let g:pymode_lint_options_pep8 =
+        \ {'max_line_length': g:pymode_options_max_line_length}
+
     " ALE
     let g:ale_linters = {'python': ['flake8'], 'kotlin': ['languageserver']}
     let g:ale_kotlin_languageserver_executable = '/Volumes/Drive2/MAC/Users/zparmley/IntelliJIDEA/Projects/kotlin-language-server/server/build/install/server/bin/kotlin-language-server'
@@ -468,7 +556,6 @@ if empty($DEV_VIMRC_PREFIX)
     if exists('g:airline')
         let g:airline_section_z = airline#section#create(['windowswap', '%3p%% ', 'linenr', ':%3v'])
         let g:airline_powerline_fonts = 1
-        let g:airline_theme = 'jellybeans'
     endif
     """ }}}
 
