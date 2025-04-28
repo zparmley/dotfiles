@@ -1,7 +1,15 @@
 """ set $DEV_VIMRC_PREFIX to load an alternate .vimrc
 """ if $DEV_VIMRC_PREFIX is set, $HOME/$DEV_VIMRC_PREFIX.vimrc is sourced
 """ and the body of this vimrc is skipped
+
+
+
 if empty($DEV_VIMRC_PREFIX)
+    """ neovim shared python3 venv
+    " if has('nvim')
+    "     let g:python3_host_prog = '/Users/zacharyparmley/PERSONAL/SharedVenvs/neovim/bin/python'
+    " endif
+
     """ Before plugins loaded
     " Using a local plugin for openscad
     let g:polyglot_disabled = ['openscad']
@@ -11,9 +19,6 @@ if empty($DEV_VIMRC_PREFIX)
 
     """ Automatically create needed files and folders on first run (*nix only) {{{
     call system('mkdir -p $HOME/.vim/{autoload,bundle,swap,undo}')
-    if !filereadable($HOME.'/.vimrc.plugins') | call system('touch $HOME/.vimrc.plugins') | endif
-    if !filereadable($HOME.'/.vimrc.first') | call system('touch $HOME/.vimrc.first') | endif
-    if !filereadable($HOME.'/.vimrc.last') | call system('touch $HOME/.vimrc.last') | endif
     """ }}}
 
     """ vim-plug plugin manager {{{
@@ -52,6 +57,14 @@ if empty($DEV_VIMRC_PREFIX)
     call plug#begin('~/.vim/bundle')
 
     """ Add Plugins {{{
+    if has('nvim')
+        Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+    else
+        Plug 'roxma/vim-hug-neovim-rpc'
+        Plug 'Shougo/deoplete.nvim'
+        Plug 'roxma/nvim-yarp'
+    endif
+    let g:deoplete#enable_at_startup = 1
     " Glorious colorscheme
     " To avoid errors during automatic installation
     " https://github.com/junegunn/vim-plug/issues/225
@@ -59,28 +72,42 @@ if empty($DEV_VIMRC_PREFIX)
 
     " https://github.com/haystackandroid/stellarized
     " Plug 'haystackandroid/stellarized'
+    
+    " Let's try some catppuccin
+    Plug 'catppuccin/vim', { 'as': 'catppuccin' }
 
-    Plug 'TroyFletcher/vim-colors-synthwave'
+    " Plug 'TroyFletcher/vim-colors-synthwave'
 
     " All the languages
     Plug 'sheerun/vim-polyglot'
+
+    " Plug 'davidhalter/jedi-vim'
+    Plug 'deoplete-plugins/deoplete-jedi'
 
     " Plug 'vim-airline/vim-airline'
     " Plug 'vim-airline/vim-airline-themes'
     Plug 'itchyny/lightline.vim'
     Plug 'scrooloose/nerdtree'
     Plug 'dense-analysis/ale'
-    Plug 'udalov/kotlin-vim'
-    Plug 'sudar/vim-arduino-syntax'
+
+    " Plug 'udalov/kotlin-vim'
+    " Plug 'sudar/vim-arduino-syntax'
     " Plug 'sirtaj/vim-openscad'
+    
+    Plug 'mlaga97/vim-openscad-bosl2'
     " Using a locally edited version of vim-openscad
     Plug '~/_Projects/vim-openscad'
-    Plug 'hdiniz/vim-gradle'
+    " Plug 'hdiniz/vim-gradle'
     Plug 'ctrlpvim/ctrlp.vim'
     Plug 'ryanoasis/vim-devicons'
     " Plug 'python-mode/python-mode', { 'for': 'python', 'branch': 'develop' }
-
     Plug 'tpope/vim-commentary'
+
+    " Plug '~/PERSONAL/Projects/VimPythonFunctionsPlugin'
+
+    " Plug 'sirver/ultisnips'
+    " let g:UltiSnipsExpandTrigger = "<s-tab>"
+    " let g:UltiSnipsListSnippets='<c-space>'
 
     " Functions, class data etc.
     " depends on either exuberant-ctags or universal-ctags
@@ -91,23 +118,12 @@ if empty($DEV_VIMRC_PREFIX)
 
     """ }}}
 
-    " Local plugins
-    if filereadable($HOME.'/.vimrc.plugins')
-        source $HOME/.vimrc.plugins
-    endif
-
     " Remove disabled plugins from installation/initialization
     " https://vi.stackexchange.com/q/13471/5070
     call filter(g:plugs, 'index(g:plugs_disabled, v:key) == -1')
 
     " Initalize plugin system
     call plug#end()
-    """ }}}
-
-    """ Local leading config, only for prerequisites and will be overwritten {{{
-    if filereadable($HOME.'/.vimrc.first')
-        source $HOME/.vimrc.first
-    endif
     """ }}}
 
     """ User interface {{{
@@ -125,6 +141,9 @@ if empty($DEV_VIMRC_PREFIX)
 
     """ jellybeans
     " silent! colorscheme jellybeans
+    
+    """ catppuccin_(latte|frappe|macchiato|mocha)
+    colorscheme catppuccin_macchiato
 
     """ stellarized light
     " set background=light
@@ -140,14 +159,15 @@ if empty($DEV_VIMRC_PREFIX)
     """ }}}
 
     """ 256 colors for maximum jellybeans bling. See commit log for info {{{
-    if (&term =~# 'xterm') || (&term =~# 'screen')
-        set t_Co=256
-    endif
+    " if (&term =~# 'xterm') || (&term =~# 'screen')
+    "     set t_Co=256
+    " endif
     """ }}}
     """ }}}
 
     """ Interface general {{{
     set cursorline                              " hilight cursor line
+    " highlight CursorLine ctermbg=White term=none cterm=none
     set more                                    " ---more--- like less
     set number                                  " line numbers
     set ruler showcmd                           " give line, column, and command in the status line
@@ -155,6 +175,7 @@ if empty($DEV_VIMRC_PREFIX)
     set showcmd                                 " show cmds being typed
     set title                                   " window title
     set vb t_vb=                                " disable beep and flashing
+    set termguicolors                           " All them colors
 
     """ Depending on your setup you may want to enforce UTF-8. {{{
     """ Should generally be set in your environment LOCALE/$LANG
@@ -163,7 +184,7 @@ if empty($DEV_VIMRC_PREFIX)
     """ }}}
 
     """ Gvim {{{
-    set guifont=DejaVu\ Sans\ Mono\ 9
+    set guifont=Cousine\ Nerd\ Font\ Mono
     set guioptions-=m                       " remove menubar
     set guioptions-=T                       " remove toolbar
     set guioptions-=r                       " remove right scrollbar
@@ -242,10 +263,15 @@ if empty($DEV_VIMRC_PREFIX)
 
     """ Persistent undo. Requires Vim 7.3 {{{
     if has('persistent_undo') && exists('&undodir')
-        set undodir=$HOME/.vim/undo/            " where to store undofiles
+        if has('nvim')
+            set undodir=$HOME/.vim/nvim_undo/       " where to store undofiles
+        else
+            set undodir=$HOME/.vim/undo/            " where to store undofiles
+        endif
         set undofile                            " enable undofile
         set undolevels=500                      " max undos stored
         set undoreload=10000                    " buffer stored undos
+
     endif
     """ }}}
 
@@ -282,6 +308,9 @@ if empty($DEV_VIMRC_PREFIX)
     set smarttab                                    " tab to 0,4,8 etc.
     set softtabstop=-1                              " =-1 uses 'sw' value
     set tabstop=4                                   " <Tab> as 4 spaces indent
+    autocmd FileType javascript setlocal shiftwidth=2 tabstop=2 softtabstop=0 expandtab
+    autocmd FileType html setlocal shiftwidth=2 tabstop=2 softtabstop=0 expandtab
+
 
     """ Only auto-comment newline for block comments {{{
     augroup AutoBlockComment
@@ -307,7 +336,7 @@ if empty($DEV_VIMRC_PREFIX)
     command! VS :source $MYVIMRC
 
     " Toggle pastemode, doesn't indent
-    set pastetoggle=<F3>
+    " set pastetoggle=<F3>
 
     " Toggle folding
     " http://vim.wikia.com/wiki/Folding#Mappings_to_toggle_folds
@@ -372,7 +401,7 @@ if empty($DEV_VIMRC_PREFIX)
 
         """ Highlight characters past 79, toggle with <Leader>h {{{
         """ You might want to override this function and its variables with
-        """ your own in .vimrc.last which might set for example colorcolumn or
+        """ your own in .vimrc which might set for example colorcolumn or
         """ even the textwidth. See https://github.com/timss/vimconf/pull/4
         let g:overlength_enabled = 0
         highlight OverLength ctermbg=238 guibg=#444444
@@ -534,6 +563,12 @@ if empty($DEV_VIMRC_PREFIX)
     """ }}}
 
     """ Plugin settings {{{
+    " jedi
+    " autocompletion
+    let g:jedi#use_tabs_not_buffers = 1
+    let g:jedi#popup_on_dot = 0
+
+
     " OpenSCAD - Author describes as a hack, running local version with my own
     " edits
     "" Python-like indents (local addition)
@@ -541,27 +576,27 @@ if empty($DEV_VIMRC_PREFIX)
     let g:openscad_indent = 1
     " PyMode python-mode https://github.com/python-mode/python-mode
     "" No pymode linters - using ALE instead for linting
-    let g:pymode = 0
-    let g:pymode_lint_checkers = []
+    " let g:pymode = 0
+    " let g:pymode_lint_checkers = []
 
-    let g:pymode_options_max_line_length = 140
-    let g:pymode_lint_options_pep8 =
-        \ {'max_line_length': g:pymode_options_max_line_length}
+    " let g:pymode_options_max_line_length = 140
+    " let g:pymode_lint_options_pep8 =
+    "     \ {'max_line_length': g:pymode_options_max_line_length}
 
     " ALE
-    let g:ale_linters = {'python': ['flake8'], 'kotlin': ['languageserver']}
-    let g:ale_kotlin_languageserver_executable = '/Volumes/Drive2/MAC/Users/zparmley/IntelliJIDEA/Projects/kotlin-language-server/server/build/install/server/bin/kotlin-language-server'
+    let g:ale_linters = {'html': ['cspell'], 'python': ['ruff', 'mypy'], 'kotlin': ['languageserver'], 'javascript': ['eslint'], 'json': ['jq', 'jsonlint'], 'sh': ['shell']}
+    let g:ale_kotlin_languageserver_executable = $HOME / 'IntelliJIDEA/Projects/kotlin-language-server/server/build/install/server/bin/kotlin-language-server'
+    let g:ale_openscad_sca2d_options = '--ignore=W2010,W2011'
+    let g:ale_cspell_options = '--language-id html'
+    let g:ale_python_mypy_options = '--enable-incomplete-feature=NewGenericSyntax'
+    " let g:ale_python_auto_virtualenv = 1
+
+    call ale#Set('openscad_sca2d_options', '')
 
     " Airline
     if exists('g:airline')
         let g:airline_section_z = airline#section#create(['windowswap', '%3p%% ', 'linenr', ':%3v'])
         let g:airline_powerline_fonts = 1
-    endif
-    """ }}}
-
-    """ Local ending config, will overwrite anything above. Generally use this. {{{
-    if filereadable($HOME.'/.vimrc.last')
-        source $HOME/.vimrc.last
     endif
     """ }}}
 
