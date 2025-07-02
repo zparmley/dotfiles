@@ -59,6 +59,7 @@ if empty($DEV_VIMRC_PREFIX)
     """ Add Plugins {{{
     if has('nvim')
         Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+        Plug '~/PERSONAL/Projects/NvimPythonHelpers', { 'do': ':UpdateRemotePlugins' }
     else
         Plug 'roxma/vim-hug-neovim-rpc'
         Plug 'Shougo/deoplete.nvim'
@@ -81,7 +82,7 @@ if empty($DEV_VIMRC_PREFIX)
     " All the languages
     Plug 'sheerun/vim-polyglot'
 
-    " Plug 'davidhalter/jedi-vim'
+    Plug 'davidhalter/jedi-vim'
     Plug 'deoplete-plugins/deoplete-jedi'
 
     " Plug 'vim-airline/vim-airline'
@@ -96,7 +97,7 @@ if empty($DEV_VIMRC_PREFIX)
     
     Plug 'mlaga97/vim-openscad-bosl2'
     " Using a locally edited version of vim-openscad
-    Plug '~/_Projects/vim-openscad'
+    " Plug '~/_Projects/vim-openscad'
     " Plug 'hdiniz/vim-gradle'
     Plug 'ctrlpvim/ctrlp.vim'
     Plug 'ryanoasis/vim-devicons'
