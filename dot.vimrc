@@ -567,7 +567,7 @@ if empty($DEV_VIMRC_PREFIX)
     " jedi
     " autocompletion
     let g:jedi#use_tabs_not_buffers = 1
-    let g:jedi#popup_on_dot = 0
+    let g:jedi#popup_on_dot = 1
 
 
     " OpenSCAD - Author describes as a hack, running local version with my own
